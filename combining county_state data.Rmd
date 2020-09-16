@@ -1,0 +1,91 @@
+---
+title: "New Master Data"
+author: "Katy Seiter"
+date: "9/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(googlesheets4)
+library(googledrive)
+library(tidyr)
+library(rio)
+library(dplyr)
+```
+
+Import data
+```{r}
+newcountydata <- rio::import("new_county_data_to_9_15.csv")
+
+janitor::clean_names(newcountydata)
+janitor::clean_names(county_state_master)
+
+```
+
+Match names
+```{r}
+colnames(county_state_master)[2] <- "date"
+colnames(newcountydata)[39] <- "date"
+colnames(county_state_master)[3] <- "confirmed_pos"
+colnames(county_state_master)[4] <- "confirmed_neg"
+colnames(county_state_master)[5] <- "Recoveries"
+colnames(county_state_master)[6] <- "confirmed_death"
+colnames(county_state_master)[7] <- "total_tests"
+colnames(county_state_master)[8] <- "confirmed_active"
+colnames(county_state_master)[1] <- "county_name"
+colnames(newcountydata)[2] <- "county_name"
+```
+
+```{r}
+county_state_master$date <- as.Date(county_state_master$date)
+glimpse(county_state_master)
+
+```
+
+```{r}
+newcountydata$date <- as.Date(newcountydata$date)
+glimpse(newcountydata)
+```
+
+```{r}
+joinedcountymaster <- left_join(county_state_master, newcountydata, by = c("date" = "date", "county_name" = "county_name"))
+```
+
+```{r}
+glimpse(joinedcountymaster)
+````
+
+````{r}
+df <- joinedcountymaster %>% 
+  select(county_name, date, confirmed_death.x, confirmed_death.y)
+```
+
+```{r}
+xyz <- joinedcountymaster %>% 
+  select(county_name, date, confirmed_pos.x,confirmed_pos.y) %>% 
+  filter(date == "2020-09-15") %>% 
+  filter(!(county_name == "Arkansas_all_counties")) %>% 
+  janitor::adorn_totals("row")
+``` 
+
+```{r}
+newjoinedcountymaster = subset(joinedcountymaster, select = -c(23,31,33,40,42,46,48))
+
+colnames(newjoinedcountymaster)[3] <- "confirmed_pos"
+colnames(newjoinedcountymaster)[4] <- "confirmed_neg"
+colnames(newjoinedcountymaster)[5] <- "Recoveries"
+colnames(newjoinedcountymaster)[6] <- "confirmed_death"
+colnames(newjoinedcountymaster)[7] <- "total_tests"
+colnames(newjoinedcountymaster)[8] <- "confirmed_active"
+
+glimpse(newjoinedcountymaster)
+```
+
+```{r}
+write.csv(newjoinedcountymaster, "joined_county_state_master.csv")
+```
+
+
