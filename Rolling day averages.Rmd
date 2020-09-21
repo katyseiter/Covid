@@ -25,7 +25,7 @@ mastertest <- master2 %>%
 
 #Import data
 ```{r}
-master_file <- rio::import("master_file.csv"
+master_file <- rio::import("master_file.csv")
 ```
 
 #Normal calculations
