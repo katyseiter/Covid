@@ -15,7 +15,8 @@ library(rio)
 ``` {r}
 mastertest <- master2 %>% 
   select("county_nam","mydate","deaths","fhwa_numbe","fips","positive","negative","recoveries","total_tests","active_cases","pop_5yr_est_2018","confirmed_pos","probable_pos","confirmed_neg","probable_neg","confirmed_recov","probable_recov","confirmed_death","probable_death","confirmed_active","probable_active","pcr_test","antigen_test","pcr_pos_test", "pcr_neg_test","antigen_pos_test","antigen_neg_test","total_pos_test","total_neg_test", "New_Cases_Today","Recovered_Since_Yesterday","New_Deaths_Today","New_Tests_Dashboard","Cases_Population","Tested_Population","New_Cases_Today_10k_Pop","Active_Cases_10k_Pop","Pct_Positive_Cumulative","Pct_Positive_New_to_Dashboard","Closed","Pct_Deaths_vs_Recoveries","Pct_Recoveries_vs_Deaths","lab_prvt","lab_pub") %>% 
-   dplyr::mutate(positive03da = zoo::rollmean(positive, k = 3, fill = NA)) %>% 
+   dplyr::arrange(desc(mydate)) %>% 
+    dplyr::mutate(positive05da = zoo::rollmean(positive, k = 5, fill = NA)) %>% 
   dplyr::ungroup()
 ```
 
