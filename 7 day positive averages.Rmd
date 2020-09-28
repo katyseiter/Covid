@@ -1,0 +1,55 @@
+---
+title: "7 Day Positive Averages"
+author: "Katy Seiter"
+date: "9/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#install.packages("slider")
+library(tidyverse)
+library(rio)
+library(slider)
+```
+
+#This is line 168 from Daily Update
+``` {r}
+master2 <- master2 %>% 
+  select("county_nam","mydate","deaths","fhwa_numbe","fips","positive","negative","recoveries","total_tests","active_cases","pop_5yr_est_2018","confirmed_pos","probable_pos","confirmed_neg","probable_neg","confirmed_recov","probable_recov","confirmed_death","probable_death","confirmed_active","probable_active","pcr_test","antigen_test","pcr_pos_test", "pcr_neg_test","antigen_pos_test","antigen_neg_test","total_pos_test","total_neg_test", "New_Cases_Today","Recovered_Since_Yesterday","New_Deaths_Today","New_Tests_Dashboard","Cases_Population","Tested_Population","New_Cases_Today_10k_Pop","Active_Cases_10k_Pop","Pct_Positive_Cumulative","Pct_Positive_New_to_Dashboard","Closed","Pct_Deaths_vs_Recoveries","Pct_Recoveries_vs_Deaths","lab_prvt","lab_pub")
+master2$mydate <- as.Date(master2$mydate)
+```
+#Add this at line 173 for new 7 day average of positives
+```{r}
+ master2 <- master2 %>% 
+  group_by(county_nam) %>%
+  arrange(county_nam, mydate) %>%
+  mutate(positive_avg = slider::slide_dbl(positive, mean, .before = 6, .after = 0)) %>%
+ungroup()
+```
+#Run this before writing script to get back in descending order by date
+```{r}
+master2 %>% master2
+  arrange(desc(mydate))
+
+glimpse(master2)
+```
+#Write script
+```{r}
+write.csv(master2, "master_file.csv")
+```
+
+
+
+#Run this for quick test before adding to Daily Update
+```{r}
+master_file <- rio::import("master_file.csv")
+```
+
+```{r}
+test <- master_file %>%
+  filter(mydate >= as.Date("2020-09-13")) %>%
+  group_by(county_nam) %>%
+  arrange(county_nam, mydate) %>%
+  mutate(positive_avg = slider::slide_dbl(positive, mean, .before = 6, .after = 0)) %>%
+ungroup()
+```
