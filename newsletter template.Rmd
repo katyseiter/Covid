@@ -1,0 +1,133 @@
+---
+title: "Newsletter"
+author: "Seiter"
+date: "2/16/2021"
+output: html_document
+---
+## Statewide Weekly Update
+```{r}
+# Make state table for the week - change dates each week
+state <- master %>% 
+  select(County_Name, Date, New_Cases_Today, New_Deaths_Today) %>% 
+  filter((Date >= "2021-02-22" & Date <= "2021-02-28"),
+         County_Name == "Arkansas_all_counties")
+
+# Make hospital table for the week - change dates each week 
+hosp <- hospital_master %>% 
+  select(New_on_Vent, New_Admits, date) %>% 
+  filter(date >= "2021-02-22" & date <= "2021-02-28")
+
+hosp <- hosp %>% 
+  rename(Date = date)
+
+# Join state master and hospital 
+stateweekly <- right_join(state, hosp, by = "Date")
+
+# Make vaccine table for the week - change dates each week
+
+#vaccine <- rio::import("https://raw.githubusercontent.com/Arkansascovid/Main/master/vaccine.csv")
+
+vaccine2 <- vaccine %>% 
+  select(New_Doses_Today, Date) %>% 
+  filter((Date >= "2021-02-21" & Date <= "2021-02-28"))
+
+# Join vaccine with state weekly
+weekly_totals <- right_join(stateweekly, vaccine2, by = "Date")
+
+# Calculate week totals
+weekly_totals <- weekly_totals %>% 
+   summarize(New_Cases = sum(New_Cases_Today),
+            New_Deaths = sum(New_Deaths_Today),
+            New_Hospitalizations = sum(New_Admits), 
+            New_on_Ventilators = sum(New_on_Vent),
+            New_Doses = sum(New_Doses_Today))
+
+# Rename 
+weekly_totals <- weekly_totals %>% 
+   rename('New Cases' =  New_Cases, 'New Deaths' = New_Deaths, 'New Hospitalizations' = New_Hospitalizations, 'New on Ventilators' = New_on_Ventilators, 'Doses Given' = New_Doses)
+
+
+# Reformat for datawrapper
+
+weeklyupdate<- as.data.frame(t(weekly_totals))
+
+write.csv(weeklyupdate, "weeklyupdate.csv")
+weeklyupdate2 <- rio::import("weeklyupdate.csv")
+colnames(weeklyupdate2) <- c("Item", "Amount")
+
+write.csv(weeklyupdate2, "weeklyupdate.csv")
+```
+
+# Statewide Weekly Snapshot Graphic
+```{r}
+# Calculate weekly (7-day) averages for cases and deaths
+avg <- master %>% 
+  group_by(County_Name) %>%
+  arrange(County_Name, Date) %>% mutate(New_Cases_7_Day_Avg = slider::slide_dbl(New_Cases_Today, mean, .before =
+  6, .after = 0)) %>% 
+  mutate(New_Deaths_7_Day_Avg = slider::slide_dbl(New_Deaths_Today, mean, .before =
+  6, .after = 0)) %>% 
+  ungroup()
+
+avg <- avg %>% 
+  arrange(Date)
+
+avg$New_Cases_7_Day_Avg <-round(avg$New_Cases_7_Day_Avg, 1)
+avg$New_Deaths_7_Day_Avg <-round(avg$New_Deaths_7_Day_Avg, 1)
+
+# Filter for statewide and week only
+weeklysnapshot <- avg %>% 
+  select(Date, County_Name, New_Cases_Today, New_Cases_7_Day_Avg, New_Deaths_Today, New_Deaths_7_Day_Avg) %>% 
+  filter((Date >= "2021-02-22" & Date <= "2021-02-28"),
+  (County_Name=="Arkansas_all_counties"))
+
+# rename
+weeklysnapshot <- weeklysnapshot %>% 
+  rename('Daily Cases' =  New_Cases_Today, 'Daily Deaths' = New_Deaths_Today)
+
+write.csv(weeklysnapshot, "weeklsnapshot.csv")
+```
+
+## Weekly Top Counties 
+```{r}
+# Make county table for the week
+dftop <- master %>% 
+  filter((Date >= "2021-02-22" & Date <= "2021-02-28"),
+         (County_Name!="Arkansas_all_counties"),
+         (County_Name!="MissingCountyInfo"))
+
+# Calculate weekly cases and deaths totals for each county
+weeklysum <- dftop %>% 
+  group_by(County_Name) %>% 
+  summarize(week_newcases = sum(New_Cases_Today),
+            week_newdeaths = sum(New_Deaths_Today))
+
+# Calculate top 5 counties for deaths
+top_counties_new_deaths <- weeklysum %>% 
+  select(County_Name, week_newdeaths) %>% 
+  top_n(5, week_newdeaths)
+write.csv(top_counties_new_deaths, "counties_death.csv")
+
+# Calculate top 5 counties for cases
+top_counties_new_cases <- weeklysum %>% 
+  select(County_Name, week_newcases) %>% 
+  top_n(5, week_newcases)
+write.csv(top_counties_new_cases, "counties_cases.csv")
+
+```
+
+# County Vaccine Calculation
+```{r}
+vaccinecounty <- rio::import("https://raw.githubusercontent.com/Arkansascovid/Main/master/vaccinecounty.csv")
+
+#vaccinecounty <- vaccinecounty [ -c(1) ]
+
+countydose2 <- vaccinecounty %>% 
+  select(county, dose2pct) %>% 
+  top_n(5, dose2pct) %>% 
+  arrange(desc(dose2pct))
+
+write.csv(countydose2, "topdose2.csv")
+
+```
+
