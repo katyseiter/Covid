@@ -1,0 +1,108 @@
+---
+title: "Monthly New Cases - All Counties"
+author: "Katy Seiter"
+date: "4/6/2021"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(rio)
+library(lubridate)
+library(dplyr)
+```
+
+## Import data
+```{r}
+#master2 <- rio::import("https://raw.githubusercontent.com/Arkansascovid/Main/master/master_file.csv")
+```
+
+## Subset dataframe and assign months
+```{r}
+test <- master2 %>% 
+  select(county_nam, mydate, New_Cases_Today) %>% 
+  filter(county_nam!="Arkansas_all_counties") %>% 
+  filter(county_nam!="MissingCountyInfo") %>% 
+  filter(mydate >= "2020-04-01" & mydate <= "2021-03-31")
+
+test$month <- month(test$mydate, label=TRUE)
+```
+
+
+## Calculations ##
+
+
+
+## Master counties and months table, April 2020 - March 2021 ##
+```{r}
+master_counties_months <- test %>%
+  group_by(month, county_nam) %>%
+  summarise(New_Cases=sum(New_Cases_Today))
+
+#write.csv(master_counties_months, "master_counties_months.csv")
+
+```
+
+
+## Mini tables: total new cases for each county by individual month ##
+```{r}
+april2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Apr")
+#write.csv(april2020, "april2020.csv") 
+
+may2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="May")
+#write.csv(may2020, "may2020.csv") 
+
+june2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Jun")
+#write.csv(june2020, "june2020.csv") 
+
+july2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Jul")
+#write.csv(july2020, "july2020.csv") 
+
+aug2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Aug")
+#write.csv(aug2020, "aug2020.csv") 
+
+sept2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Sep")
+#write.csv(sept2020, "sept2020.csv") 
+
+oct2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Oct")
+#write.csv(oct2020, "oct2020.csv") 
+
+nov2020 <- <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Nov")
+#write.csv(nov2020, "nov2020.csv") 
+
+dec2020 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Dec")
+#write.csv(dec2020, "dec2020.csv") 
+
+jan2021 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Jan")
+#write.csv(jan2021, "jan2021.csv") 
+
+feb2021 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Feb")
+#write.csv(feb2021, "feb2021.csv") 
+
+march2021 <- master_counties_months %>% 
+  select(county_nam, month, New_Cases) %>% 
+  filter(month=="Mar")
+#write.csv(march2021, "march2021.csv") 
+```
